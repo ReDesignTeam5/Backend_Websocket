@@ -1,6 +1,6 @@
 # Backend Websocket Server for Team 5 ReDesign
 
-Currently deployed on replit, accessible at [frontend](ws://Backend-Websocket.ranchu2000.repl.co/frontEnd) and [backend](ws://Backend-Websocket.ranchu2000.repl.co/frontEnd/backend)
+Currently deployed on replit, accessible at ws://Backend-Websocket.ranchu2000.repl.co/frontEnd and ws://Backend-Websocket.ranchu2000.repl.co/frontEnd/backend
 
 ## Backend Responsibilities
 
