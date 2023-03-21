@@ -23,11 +23,11 @@ wss1.on("connection", function connection(ws) {
     if (hw){
         const message= JSON.parse(data);
         console.log(message);
-        if (message.type="level"){
+        if (message.type=="level"){
             if (message.level==1){
                 reportStatus(message.status);
             }else{
-                gameLogic(message.level==2, message.prompt);
+                gameLogic(message.level, message.coins, message.notes, message.prompt);
             }
         }else{
             for (const device of fe) {
@@ -68,60 +68,50 @@ server.listen(8080);
 console.log('Node.js web server at port 8080 is running..');
 
 function reportStatus(success){
+    successMsg= "0,0";
+    failureMsg="0,1";
     if (success){
         for (const device of fe) {
-            device.send(0);
+            device.send(JSON.stringify(true));
         }
-        hw.send(0);
+        hw.send(successMsg);
     }else{
         for (const device of fe) {
-            device.send(1);
+            device.send(JSON.stringify(false));
         }
-        hw.send(1);
+        hw.send(failureMsg);
     }
 }
 
-function reportPartialStatus(input,correct,chance,total){
-    for (const device of fe) {
-        device.send(input.toString()+","+correct.toString()+","+chance.toString()+","+total.toString());
-    }
-    hw.send(input.toString()+","+correct.toString()+","+chance.toString()+","+total.toString());
-}
-
-async function gameLogic(multipleCoins,prompt){
-    var totalAttempts=3;
-    var attempt=0;
-    var correct=false;
-    while (attempt <3 && !correct){
-        hardwareMessage(multipleCoins,prompt);
-        let promise= new Promise((resolve,reject)=>{
-            hw.on('message', (data)=>{
-                const message= JSON.parse(data);
-                resolve(message.answer);
-            })
+async function gameLogic(level, coins, notes, prompt){
+    hardwareMessage(coins, notes, prompt);
+    let promise= new Promise((resolve,reject)=>{
+        hw.on('message', (data)=>{
+            //const message= JSON.parse(data);
+            //resolve(message.answer);
+            const message= data.toString();
+            resolve(message);
         })
-        let answer= await promise;
-        var result= calculate(answer);
-        attempt+=1;
-        if (result===prompt){
-            reportStatus(true);
-        }else{
-            reportPartialStatus(result,prompt,totalAttempts-attempt,totalAttempts);
-        }
-    }
-    if (attempt==3){
+    })
+    let answer= await promise;
+    var result= calculate(answer);
+    if (result===prompt){
+        reportStatus(true);
+    }else{
         reportStatus(false);
     }
 }
 
-function hardwareMessage(multipleCoins, prompt){
-    hw.send((multipleCoins?0:1).toString()+","+prompt.toString());
+function hardwareMessage(coins,notes,prompt){
+    hw.send("1,"+(coins).toString()+","+(notes).toString()+","+prompt.toString()); //1 infront for command
 }
 
 function calculate(answer){
-    const coinArr = answer.split(',').map((item)=>parseInt(item, 10));
-    const valueArr=[.1,.2,.5,1];
+    const coinArr = answer.split(',').map((x) =>parseInt(x));
+    console.log(coinArr);
+    const valueArr=[.05,.1,.2,.5,1,2,5,10,50];
     var sum=0;
     coinArr.map((qty, index) => sum+=qty * valueArr[index]);
+    console.log('inserted amount is '+ sum);
     return sum;
 }
