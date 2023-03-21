@@ -87,8 +87,6 @@ async function gameLogic(level, coins, notes, prompt){
     hardwareMessage(coins, notes, prompt);
     let promise= new Promise((resolve,reject)=>{
         hw.on('message', (data)=>{
-            //const message= JSON.parse(data);
-            //resolve(message.answer);
             const message= data.toString();
             resolve(message);
         })
@@ -108,10 +106,9 @@ function hardwareMessage(coins,notes,prompt){
 
 function calculate(answer){
     const coinArr = answer.split(',').map((x) =>parseInt(x));
-    console.log(coinArr);
     const valueArr=[.05,.1,.2,.5,1,2,5,10,50];
     var sum=0;
     coinArr.map((qty, index) => sum+=qty * valueArr[index]);
-    console.log('inserted amount is '+ sum);
+    console.log('Inserted amount is '+ sum);
     return sum;
 }
