@@ -12,34 +12,41 @@ const server = http.createServer();
 const wss1 = new ws.WebSocketServer({ noServer: true });
 const wss2 = new ws.WebSocketServer({ noServer: true });
 
-const fe = new Set();
+var fe;
 var hw;
+var semaphore=0;
 
 wss1.on("connection", function connection(ws) {
   console.log("wss1:: frontEnd connected");
-  ws.send(JSON.stringify("Connected to backend"));
-  fe.add(ws);
-  ws.on('message', (data)=>{
+  //ws.send(JSON.stringify("Connected to backend"));
+  fe=ws;
+  fe.on('message', (data)=>{
     console.log("received from frontend: "+data);
     if (hw){
         const message= JSON.parse(data);
+        if (message.type=="check"){           
+            fe.send(JSON.stringify(true)); //must connect Backend before FrontEnd
+        }
         if (message.type=="level"){
             if (message.level==1){
                 reportStatus(message.status);
             }else{
-                gameLogic(message.level, message.coins, message.notes, message.prompt);
+                if (semaphore==0){
+                    semaphore=1;
+                    gameLogic(message.coins, message.notes, message.prompt);
+                }
             }
         }else{
-            for (const device of fe) {
-                device.send("Unrecognised message");
-            }
+            fe.send(JSON.stringify("Unrecognised message"));
         }
     }else{
-        for (const device of fe) {
-            device.send("No hardware connected"); //must connect Backend before FrontEnd
-        }
+        fe.send(JSON.stringify(false));
+            //device.send(JSON.stringify("No hardware connected")); //must connect Backend before FrontEnd
     }
     });
+    ws.on('close',(user)=>{
+        console.log(user +" has disconnected");
+    })
 })
 
 wss2.on("connection", function connection(ws) {
@@ -49,6 +56,9 @@ wss2.on("connection", function connection(ws) {
   ws.on('message', (data)=>{
     console.log("received from backend: "+data);
   });
+  ws.on('close',(user)=>{
+    hw=null;
+})
 })
 
 server.on("upgrade", function upgrade(request, socket, head) {
@@ -74,19 +84,15 @@ function reportStatus(success){
     successMsg= "0,0";
     failureMsg="0,1";
     if (success){
-        for (const device of fe) {
-            device.send(JSON.stringify(true));
-        }
+        fe.send(JSON.stringify(true));
         hw.send(successMsg);
     }else{
-        for (const device of fe) {
-            device.send(JSON.stringify(false));
-        }
+        fe.send(JSON.stringify(false));
         hw.send(failureMsg);
     }
 }
 
-async function gameLogic(level, coins, notes, prompt){
+async function gameLogic(coins, notes, prompt){
     hardwareMessage(coins, notes, prompt); //sends msg to hardware
     let promise= new Promise((resolve,reject)=>{
         hw.on('message', (data)=>{
@@ -96,6 +102,7 @@ async function gameLogic(level, coins, notes, prompt){
     })
     let answer= await promise;
     var result= calculate(coins,notes,answer);
+    semaphore=0;
     if (result===prompt){
         reportStatus(true);
     }else{
