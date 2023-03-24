@@ -1,4 +1,4 @@
-//replit: ws://Backend-Websocket.ranchu2000.repl.co/frontEnd
+//replit: ws://Backend-Websocket.ranchu2000.repl.co/
 const http = require(`http`);
 const ws = require(`ws`);
 const url = require(`url`);
@@ -20,9 +20,9 @@ wss1.on("connection", function connection(ws) {
   ws.send(JSON.stringify("Connected to backend"));
   fe.add(ws);
   ws.on('message', (data)=>{
+    console.log("received from frontend: "+data);
     if (hw){
         const message= JSON.parse(data);
-        console.log(message);
         if (message.type=="level"){
             if (message.level==1){
                 reportStatus(message.status);
@@ -46,6 +46,9 @@ wss2.on("connection", function connection(ws) {
   console.log("wss2:: hardware connected");
   ws.send(JSON.stringify("Connected to backend"));
   hw=ws
+  ws.on('message', (data)=>{
+    console.log("received from backend: "+data);
+  });
 })
 
 server.on("upgrade", function upgrade(request, socket, head) {
@@ -84,7 +87,7 @@ function reportStatus(success){
 }
 
 async function gameLogic(level, coins, notes, prompt){
-    hardwareMessage(coins, notes, prompt);
+    hardwareMessage(coins, notes, prompt); //sends msg to hardware
     let promise= new Promise((resolve,reject)=>{
         hw.on('message', (data)=>{
             const message= data.toString();
@@ -92,7 +95,7 @@ async function gameLogic(level, coins, notes, prompt){
         })
     })
     let answer= await promise;
-    var result= calculate(answer);
+    var result= calculate(coins,notes,answer);
     if (result===prompt){
         reportStatus(true);
     }else{
@@ -104,11 +107,48 @@ function hardwareMessage(coins,notes,prompt){
     hw.send("1,"+(coins).toString()+","+(notes).toString()+","+prompt.toString()); //1 infront for command
 }
 
-function calculate(answer){
+function calculate(coins,notes,answer){
     const coinArr = answer.split(',').map((x) =>parseInt(x));
     const valueArr=[.05,.1,.2,.5,1,2,5,10,50];
     var sum=0;
     coinArr.map((qty, index) => sum+=qty * valueArr[index]);
     console.log('Inserted amount is '+ sum);
+    coinCount=0
+    noteCount=0
+    for (i=0; i<coinArr.length; i++)
+    {
+        if (i <=4){
+            if (coinArr[i]>0){
+                coinCount+=coinArr[i];
+            }
+        }else{
+            if (coinArr[i]>0){
+                noteCount+=coinArr[i];
+            }
+        }
+    }
+    if (coins==0){//only 1 coin
+        if (coinCount>1 || noteCount>0){ 
+            console.log('Wrong, inserted '+coinCount+ ' coins and '+ noteCount+' notes');
+            return 0;
+        }
+    }else if (coins==2){//no coins
+        if (coinCount>0){
+            console.log('Wrong, inserted '+coinCount+ ' coins and '+ noteCount+' notes');
+            return 0;
+        }
+    }
+    if (notes==0){//only 1 note
+        if (noteCount>1 || coinCount>0){
+            console.log('Wrong, inserted '+coinCount+ 'c oins and '+ noteCount+' notes');
+            return 0;
+        }
+    }else if (notes==2){//no notes
+        if (noteCount>0){
+            console.log('Wrong, inserted '+coinCount+ ' coins and '+ noteCount+' notes');
+            return 0;
+        }
+    }
+    
     return sum;
 }
