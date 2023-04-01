@@ -10,7 +10,7 @@ const express = require('express');
 // console.log('Node.js web server at port 8080 is running..');
 const PORT = process.env.PORT || 8080;
 const server = express()
-  .listen( PORT,'0.0.0.0', () => console.log(`Listening on ${PORT}`));
+  .listen( PORT,'0.0.0.0', () => console.log("Express server listening on port %d", server.address().port));
 
 
 // Create two instance of the websocket server
