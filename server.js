@@ -152,7 +152,7 @@ function calculate(coins,notes,answer){
     }
     if (notes==0){//only 1 note
         if (noteCount>1 || coinCount>0){
-            console.log('Wrong, inserted '+coinCount+ 'c oins and '+ noteCount+' notes');
+            console.log('Wrong, inserted '+coinCount+ 'coins and '+ noteCount+' notes');
             return 0;
         }
     }else if (notes==2){//no notes
