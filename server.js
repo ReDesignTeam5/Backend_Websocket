@@ -2,16 +2,17 @@
 const ws = require(`ws`);
 const url = require(`url`);
 const express = require('express');
+const app= express()
 
-// Create the https server
-//const http = require(`http`);
-// const server = http.createServer();
-// server.listen(8080);
-// console.log('Node.js web server at port 8080 is running..');
+
+const http = require('http');
+const server = http.createServer(app);
 const PORT = process.env.PORT || 8080;
-const server = express()
-  .listen( PORT,'0.0.0.0', () => console.log("Express server listening on port %d", server.address().port));
-
+server.listen(PORT,'0.0.0.0', () => console.log("Express server listening on port %d", server.address().port));
+  
+app.get('/', (req, res) => {
+    res.send('Hello World!')
+  })
 
 // Create two instance of the websocket server
 //ws1: FrontEnd to WebSocketServer
@@ -27,6 +28,7 @@ wss1.on("connection", function connection(ws) {
   console.log("wss1:: frontEnd connected");
   //ws.send(JSON.stringify("Connected to backend"));
   fe=ws;
+  fe.ru
   fe.on('message', (data)=>{
     console.log("received from frontend: "+data);
     if (hw){
@@ -152,7 +154,7 @@ function calculate(coins,notes,answer){
     }
     if (notes==0){//only 1 note
         if (noteCount>1 || coinCount>0){
-            console.log('Wrong, inserted '+coinCount+ 'c oins and '+ noteCount+' notes');
+            console.log('Wrong, inserted '+coinCount+ ' coins and '+ noteCount+' notes');
             return 0;
         }
     }else if (notes==2){//no notes
@@ -164,3 +166,12 @@ function calculate(coins,notes,answer){
     
     return sum;
 }
+
+setInterval(() => {
+    wss1.clients.forEach((client) => {
+        client.send(new Date().toTimeString());
+    });
+    wss2.clients.forEach((client) => {
+        client.send("2,0");
+      });
+  }, 30000);
