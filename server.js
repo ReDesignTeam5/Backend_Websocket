@@ -2,16 +2,17 @@
 const ws = require(`ws`);
 const url = require(`url`);
 const express = require('express');
+const app= express()
 
-// Create the https server
-//const http = require(`http`);
-// const server = http.createServer();
-// server.listen(8080);
-// console.log('Node.js web server at port 8080 is running..');
+
+const http = require('http');
+const server = http.createServer(app);
 const PORT = process.env.PORT || 8080;
-const server = express()
-  .listen( PORT,'0.0.0.0', () => console.log("Express server listening on port %d", server.address().port));
-
+server.listen(PORT,'0.0.0.0', () => console.log("Express server listening on port %d", server.address().port));
+  
+app.get('/', (req, res) => {
+    res.send('Hello World!')
+  })
 
 // Create two instance of the websocket server
 //ws1: FrontEnd to WebSocketServer
@@ -168,6 +169,9 @@ function calculate(coins,notes,answer){
 
 setInterval(() => {
     wss1.clients.forEach((client) => {
-      client.send(new Date().toTimeString());
+        client.send(new Date().toTimeString());
     });
-  }, 10000);
+    wss2.clients.forEach((client) => {
+        client.send("2,0");
+      });
+  }, 30000);
