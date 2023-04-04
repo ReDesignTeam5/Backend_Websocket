@@ -27,6 +27,7 @@ wss1.on("connection", function connection(ws) {
   console.log("wss1:: frontEnd connected");
   //ws.send(JSON.stringify("Connected to backend"));
   fe=ws;
+  fe.ru
   fe.on('message', (data)=>{
     console.log("received from frontend: "+data);
     if (hw){
@@ -152,7 +153,7 @@ function calculate(coins,notes,answer){
     }
     if (notes==0){//only 1 note
         if (noteCount>1 || coinCount>0){
-            console.log('Wrong, inserted '+coinCount+ 'coins and '+ noteCount+' notes');
+            console.log('Wrong, inserted '+coinCount+ ' coins and '+ noteCount+' notes');
             return 0;
         }
     }else if (notes==2){//no notes
@@ -164,3 +165,9 @@ function calculate(coins,notes,answer){
     
     return sum;
 }
+
+setInterval(() => {
+    wss1.clients.forEach((client) => {
+      client.send(new Date().toTimeString());
+    });
+  }, 10000);
