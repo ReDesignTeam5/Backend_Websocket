@@ -168,9 +168,9 @@ function calculate(coins,notes,answer){
 }
 
 setInterval(() => {
-    wss1.clients.forEach((client) => {
-        client.send(new Date().toTimeString());
-    });
+    // wss1.clients.forEach((client) => {
+    //     client.send(new Date().toTimeString());
+    // });
     wss2.clients.forEach((client) => {
         client.send("2,0");
       });
