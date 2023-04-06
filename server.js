@@ -167,11 +167,11 @@ function calculate(coins,notes,answer){
     return sum;
 }
 
-setInterval(() => {
-    // wss1.clients.forEach((client) => {
-    //     client.send(new Date().toTimeString());
-    // });
-    wss2.clients.forEach((client) => {
-        client.send("2,0");
-      });
-  }, 30000);
+// setInterval(() => { //for heroku (only hardware connection pinging)
+//     // wss1.clients.forEach((client) => {
+//     //     client.send(new Date().toTimeString());
+//     // });
+//     wss2.clients.forEach((client) => {
+//         client.send("2,0");
+//       });
+//   }, 30000);
